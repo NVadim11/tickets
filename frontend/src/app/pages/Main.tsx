@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WrapperMain, Content, Header, Form, FormInput, FormButton, FormError } from './Styles.styled';
-
-const baseUrl = process.env.REACT_APP_API_BASE_URL;
+import {
+	WrapperMain,
+	Content,
+	Header,
+	Form,
+	FormInput,
+	FormButton,
+	FormError,
+	PageIntro,
+	PageTitle,
+	PageSubtitle,
+	SearchRow,
+} from './Styles.styled';
+import { baseUrl } from '../api';
 
 export const Main = () => {
 	const [ticketNumber, setTicketNumber] = useState('');
-  const [error, setError] = useState('');
+	const [error, setError] = useState('');
 	const navigate = useNavigate();
 
 	const handleSearch = async (e: React.FormEvent) => {
@@ -27,9 +38,9 @@ export const Main = () => {
 			if (response.ok && data.exists) {
 				navigate(`/${ticketNumber}`);
 			} else {
-        setError('Ticket nicht gefunden');
+				setError('Ticket nicht gefunden');
 			}
-		} catch (err) {
+		} catch {
 			setError('Server error, please try again later');
 		}
 	};
@@ -38,21 +49,24 @@ export const Main = () => {
 		<WrapperMain>
 			<Content>
 				<Header>Deutschlandticket</Header>
-				<Form>
-					<FormInput
-						type='text'
-						placeholder='Ticketnummer eingeben'
-						value={ticketNumber}
-						onChange={(e) => setTicketNumber(e.target.value)}
-            error={!!error}
-					/>
-					<FormButton
-						onClick={handleSearch}
-					>
-						Suchen
-					</FormButton>
+				<PageIntro>
+					<PageTitle>Ticket anzeigen</PageTitle>
+					<PageSubtitle>Geben Sie Ihre Ticketnummer ein, um Ihr eTicket zu öffnen.</PageSubtitle>
+				</PageIntro>
+				<Form onSubmit={handleSearch}>
+					<SearchRow>
+						<FormInput
+							type='text'
+							placeholder='Ticketnummer'
+							value={ticketNumber}
+							onChange={(e) => setTicketNumber(e.target.value)}
+							$error={!!error}
+							autoComplete='off'
+						/>
+						<FormButton type='submit'>Suchen</FormButton>
+					</SearchRow>
 				</Form>
-        {error && <FormError>{error}</FormError>}
+				{error && <FormError>{error}</FormError>}
 			</Content>
 		</WrapperMain>
 	);

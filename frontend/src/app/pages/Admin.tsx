@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	WrapperMain,
 	Content,
@@ -6,55 +6,101 @@ import {
 	Form,
 	FormInput,
 	FormButton,
+	FormError,
+	FormSuccess,
+	FormHint,
+	FormLabel,
+	FileInput,
+	ButtonRow,
 } from './Styles.styled';
+import {
+	adminLogin,
+	authHeaders,
+	baseUrl,
+	clearAdminToken,
+	getAdminToken,
+} from '../api';
 
-const baseUrl = process.env.REACT_APP_API_BASE_URL;
+const emptyForm = {
+	Number: '',
+	Name: '',
+	BirthDate: '',
+	StartDate: '',
+	StartTime: '',
+	EndDate: '',
+	EndTime: '',
+};
 
 export const Admin = () => {
-	const [formData, setFormData] = useState({
-		Number: '',
-		Name: '',
-		BirthDate: '',
-		StartDate: '',
-		StartTime: '',
-		EndDate: '',
-		EndTime: '',
-		QRCode: '',
-	});
-
+	const [authenticated, setAuthenticated] = useState(false);
+	const [password, setPassword] = useState('');
+	const [loginError, setLoginError] = useState('');
+	const [loginLoading, setLoginLoading] = useState(false);
+	const [formData, setFormData] = useState(emptyForm);
 	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [formError, setFormError] = useState('');
+	const [formSuccess, setFormSuccess] = useState('');
+
+	useEffect(() => {
+		setAuthenticated(!!getAdminToken());
+	}, []);
+
+	const handleUnauthorized = () => {
+		clearAdminToken();
+		setAuthenticated(false);
+		setFormError('Сессия истекла. Войдите снова.');
+	};
+
+	const handleLogin = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoginError('');
+		setLoginLoading(true);
+
+		try {
+			await adminLogin(password);
+			setPassword('');
+			setAuthenticated(true);
+		} catch (err) {
+			setLoginError(err instanceof Error ? err.message : 'Ошибка входа');
+		} finally {
+			setLoginLoading(false);
+		}
+	};
+
+	const handleLogout = () => {
+		clearAdminToken();
+		setAuthenticated(false);
+		setFormSuccess('');
+		setFormError('');
+	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		let { name, value } = e.target;
 
-		// Маска для даты (DD.MM.YYYY)
 		if (name.includes('Date')) {
 			value = value
-				.replace(/\D/g, '') // Удаляем все нецифровые символы
-				.replace(/^(\d{2})(\d)/, '$1.$2') // Добавляем точку после дня
-				.replace(/^(\d{2}\.\d{2})(\d)/, '$1.$2') // Добавляем точку после месяца
-				.replace(/\.(\d{4})\d+?$/, '.$1'); // Ограничиваем год 4 цифрами
-			
-			// Ограничиваем ввод невалидных значений
-			const [day, month, year] = value.split('.');
-			if (day && parseInt(day) > 31) value = '31' + value.slice(2);
-			if (month && parseInt(month) > 12) value = value.slice(0, 3) + '12' + value.slice(5);
+				.replace(/\D/g, '')
+				.replace(/^(\d{2})(\d)/, '$1.$2')
+				.replace(/^(\d{2}\.\d{2})(\d)/, '$1.$2')
+				.replace(/\.(\d{4})\d+?$/, '.$1');
+
+			const [day, month] = value.split('.');
+			if (day && parseInt(day, 10) > 31) value = '31' + value.slice(2);
+			if (month && parseInt(month, 10) > 12) value = value.slice(0, 3) + '12' + value.slice(5);
 		}
 
-		// Маска для времени (HH:MM)
 		if (name.includes('Time')) {
 			value = value
-				.replace(/\D/g, '') // Удаляем все нецифровые символы
-				.replace(/^(\d{2})(\d)/, '$1:$2') // Добавляем двоеточие после часов
-				.replace(/:\d{2}\d+?$/, m => m.slice(0, 3)); // Ограничиваем минуты 2 цифрами
-			
-			// Ограничиваем ввод невалидных значений
+				.replace(/\D/g, '')
+				.replace(/^(\d{2})(\d)/, '$1:$2')
+				.replace(/:\d{2}\d+?$/, (m) => m.slice(0, 3));
+
 			const [hours, minutes] = value.split(':');
-			if (hours && parseInt(hours) > 23) value = '23' + value.slice(2);
-			if (minutes && parseInt(minutes) > 59) value = value.slice(0, 3) + '59';
+			if (hours && parseInt(hours, 10) > 23) value = '23' + value.slice(2);
+			if (minutes && parseInt(minutes, 10) > 59) value = value.slice(0, 3) + '59';
 		}
 
-		setFormData(prev => ({ ...prev, [name]: value }));
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,52 +111,116 @@ export const Admin = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setFormError('');
+		setFormSuccess('');
 
 		try {
 			let imagePath = '';
 			if (imageFile) {
-				const formData = new FormData();
-				formData.append('image', imageFile);
+				const uploadBody = new FormData();
+				uploadBody.append('image', imageFile);
 
 				const uploadResponse = await fetch(`${baseUrl}/upload`, {
 					method: 'POST',
-					body: formData,
+					headers: authHeaders(),
+					body: uploadBody,
 				});
 				const uploadResult = await uploadResponse.json();
 
-				if (!uploadResponse.ok) throw new Error(uploadResult.error || 'Ошибка загрузки изображения');
+				if (uploadResponse.status === 401) {
+					handleUnauthorized();
+					return;
+				}
+				if (!uploadResponse.ok) {
+					throw new Error(uploadResult.error || 'Ошибка загрузки изображения');
+				}
 
 				imagePath = uploadResult.filePath;
 			}
+
+			if (!imagePath) {
+				setFormError('Выберите изображение билета');
+				return;
+			}
+
 			const response = await fetch(`${baseUrl}/admin/tickets`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', ...authHeaders() },
 				body: JSON.stringify({ ...formData, Image: imagePath }),
 			});
 
 			const result = await response.json();
-			alert(result.message || 'Error adding ticket');
-		} catch (error) {
-			console.error('Request error:', error);
-			alert('Failed to add ticket');
+
+			if (response.status === 401) {
+				handleUnauthorized();
+				return;
+			}
+			if (!response.ok) {
+				throw new Error(result.error || 'Ошибка сохранения');
+			}
+
+			setFormSuccess(result.message || 'Билет сохранён');
+			setFormData(emptyForm);
+			setImageFile(null);
+		} catch (err) {
+			setFormError(err instanceof Error ? err.message : 'Не удалось сохранить билет');
 		}
 	};
 
 	const handleDeleteAllTickets = async () => {
-		if (window.confirm('Вы уверены, что хотите удалить ВСЕ билеты? Это действие нельзя отменить.')) {
-			try {
-				const response = await fetch(`${baseUrl}/admin/tickets`, {
-					method: 'DELETE',
-				});
-				
-				const result = await response.json();
-				alert(result.message);
-			} catch (error) {
-				console.error('Error deleting tickets:', error);
-				alert('Ошибка при удалении билетов');
+		if (!window.confirm('Удалить все билеты? Это нельзя отменить.')) return;
+
+		setFormError('');
+		setFormSuccess('');
+
+		try {
+			const response = await fetch(`${baseUrl}/admin/tickets`, {
+				method: 'DELETE',
+				headers: authHeaders(),
+			});
+
+			const result = await response.json();
+
+			if (response.status === 401) {
+				handleUnauthorized();
+				return;
 			}
+			if (!response.ok) {
+				throw new Error(result.error || 'Ошибка удаления');
+			}
+
+			setFormSuccess(result.message);
+		} catch (err) {
+			setFormError(err instanceof Error ? err.message : 'Ошибка при удалении');
 		}
 	};
+
+	if (!authenticated) {
+		return (
+			<WrapperMain>
+				<Content>
+					<Header>Админка</Header>
+					<Form onSubmit={handleLogin}>
+						<FormHint>Введите пароль для доступа к управлению билетами.</FormHint>
+						<FormInput
+							type='password'
+							name='password'
+							placeholder='Пароль'
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							$error={!!loginError}
+							autoComplete='current-password'
+							required
+						/>
+						<FormButton type='submit' disabled={loginLoading}>
+							{loginLoading ? 'Вход…' : 'Войти'}
+						</FormButton>
+					</Form>
+					{loginError && <FormError>{loginError}</FormError>}
+				</Content>
+			</WrapperMain>
+		);
+	}
 
 	return (
 		<WrapperMain>
@@ -142,7 +252,7 @@ export const Admin = () => {
 						required
 						maxLength={10}
 					/>
-					<div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '16px' }}>
+					<ButtonRow>
 						<FormInput
 							type='text'
 							name='StartDate'
@@ -155,14 +265,14 @@ export const Admin = () => {
 						<FormInput
 							type='text'
 							name='StartTime'
-							placeholder='Время начала (ЧЧ:ММ)'
+							placeholder='Время (ЧЧ:ММ)'
 							value={formData.StartTime}
 							onChange={handleChange}
 							required
 							maxLength={5}
 						/>
-					</div>
-					<div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '16px' }}>
+					</ButtonRow>
+					<ButtonRow>
 						<FormInput
 							type='text'
 							name='EndDate'
@@ -175,34 +285,35 @@ export const Admin = () => {
 						<FormInput
 							type='text'
 							name='EndTime'
-							placeholder='Время окончания (ЧЧ:ММ)'
+							placeholder='Время (ЧЧ:ММ)'
 							value={formData.EndTime}
 							onChange={handleChange}
 							required
 							maxLength={5}
 						/>
-					</div>
-					<div style={{ display: 'flex', flexDirection: 'column' }}>
-						<label htmlFor='Image'>Изображение</label>
-						<input type='file' name='Image' accept='image/png, image/jpeg, image/webp' onChange={handleFileChange} />
-					</div>
-
-					
-					<div style={{display:'flex', gap: '20px'}}>
-					<FormButton type='submit'>Добавить</FormButton>
-					<FormButton 
-						type='button' 
-						onClick={handleDeleteAllTickets}
-						style={{ 
-							backgroundColor: '#dc3545',
-						}}
-					>
-						Удалить все билеты
+					</ButtonRow>
+					<FormLabel>
+						Изображение
+						<FileInput
+							type='file'
+							name='Image'
+							accept='image/png, image/jpeg, image/webp'
+							onChange={handleFileChange}
+							required
+						/>
+					</FormLabel>
+					<ButtonRow>
+						<FormButton type='submit'>Добавить</FormButton>
+						<FormButton type='button' $variant='danger' onClick={handleDeleteAllTickets}>
+							Удалить все
+						</FormButton>
+					</ButtonRow>
+					<FormButton type='button' $variant='ghost' onClick={handleLogout}>
+						Выйти
 					</FormButton>
-					</div>
 				</Form>
-				
-
+				{formError && <FormError>{formError}</FormError>}
+				{formSuccess && <FormSuccess>{formSuccess}</FormSuccess>}
 			</Content>
 		</WrapperMain>
 	);
