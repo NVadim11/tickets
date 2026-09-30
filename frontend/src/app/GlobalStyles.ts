@@ -8,23 +8,23 @@ const GlobalStyle = createGlobalStyle`
     -webkit-tap-highlight-color: transparent;
   }
 
-  #root {
-    min-height: 100dvh;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  html {
     width: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-text-size-adjust: 100%;
   }
 
-  html, body {
-    overscroll-behavior-y: contain;
+  body {
     width: 100%;
-    min-height: 100dvh;
+    min-height: 100svh;
     min-height: 100vh;
-    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    overflow-y: visible;
     margin: 0;
     padding: 0;
-    font-size: 16px;
+    font-size: clamp(14px, 0.25vw + 0.35vh + 12px, 16px);
     font-family: 'Titillium Web', system-ui, sans-serif;
     color: #e8eaed;
     line-height: 1.5;
@@ -33,13 +33,10 @@ const GlobalStyle = createGlobalStyle`
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html {
-    overflow-x: hidden;
-  }
-
-  body {
-    overflow-x: hidden;
-    overflow-y: auto;
+  #root {
+    display: block;
+    width: 100%;
+    min-height: 0;
   }
 
   body::-webkit-scrollbar {

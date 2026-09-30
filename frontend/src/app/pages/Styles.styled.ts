@@ -22,39 +22,46 @@ export const theme = {
 	radiusSm: '8px',
 };
 
-export const WrapperMain = styled.div`
-	background: ${theme.pageBg};
+/** Full-page shell: scroll lives on document (html), not trapped in flex. */
+export const WrapperMain = styled.main`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
 	width: 100%;
-	min-height: 100dvh;
 	min-height: 100svh;
-	padding: max(12px, env(safe-area-inset-top, 0px)) 16px
-		max(20px, env(safe-area-inset-bottom, 0px));
+	min-height: 100vh;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	background: ${theme.pageBg};
+	background-attachment: fixed;
+	padding:
+		max(clamp(6px, 1.5svh, 16px), env(safe-area-inset-top, 0px))
+		clamp(10px, 2.5vw, 20px)
+		max(clamp(12px, 2.5svh, 24px), env(safe-area-inset-bottom, 0px));
 `;
 
 export const Content = styled.div`
-	max-width: 440px;
-	width: 100%;
+	width: min(100%, 27.5rem);
+	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
-	flex-shrink: 0;
-	margin-top: auto;
-	margin-bottom: auto;
 	background: ${theme.card};
 	border: 1px solid ${theme.border};
-	border-radius: ${theme.radiusLg};
-	overflow: hidden;
+	border-radius: clamp(12px, 2.5svh, ${theme.radiusLg});
 	box-shadow: ${theme.shadow};
+	overflow: clip;
+
+	@supports not (overflow: clip) {
+		overflow: hidden;
+	}
 `;
 
 export const Header = styled.h4`
-	padding: 22px 20px;
+	padding: clamp(12px, 2.2svh, 22px) clamp(14px, 3vw, 20px);
 	font-weight: 600;
 	color: ${theme.textHeading};
-	font-size: 1.25rem;
+	font-size: clamp(1rem, 0.6rem + 1.8svh, 1.25rem);
 	text-align: center;
 	letter-spacing: 0.02em;
 	background: ${theme.cardInner};
@@ -218,45 +225,37 @@ export const TicketItems = styled.div`
 	flex-direction: column;
 	color: ${theme.textMuted};
 	background: ${theme.card};
+	--ticket-scale: clamp(0.78, calc(100svh / 720), 1);
 `;
 
 export const TicketCardBody = styled.div`
-	padding: 20px;
+	padding: clamp(10px, 2.2svh, 20px) clamp(12px, 3vw, 20px);
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
-
-	@media (max-height: 700px) {
-		padding: 14px 16px;
-		gap: 12px;
-	}
+	gap: clamp(8px, 1.6svh, 16px);
 `;
 
 export const LogoSection = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 16px;
+	gap: clamp(8px, 2vw, 16px);
 	flex-wrap: wrap;
-	padding: 8px 0;
+	padding: clamp(4px, 0.8svh, 8px) 0;
 
 	img {
-		height: 28px;
+		height: clamp(18px, 3.2svh, 28px);
 		width: auto;
 		filter: brightness(1.15) contrast(0.95);
 	}
 `;
 
 export const QRFrame = styled.div`
-	padding: 12px;
+	padding: clamp(6px, 1.2svh, 12px);
 	background: ${theme.cardInner};
 	border-radius: ${theme.radiusMd};
 	border: 1px solid ${theme.border};
 	box-shadow: 0 0 28px ${theme.accentGlow};
-
-	@media (max-height: 700px) {
-		padding: 8px;
-	}
 `;
 
 export const QRSection = styled.div`
@@ -268,30 +267,22 @@ export const QRSection = styled.div`
 		max-width: 100%;
 		width: auto;
 		height: auto;
-		max-height: min(42dvh, 280px);
+		max-height: clamp(96px, 34svh, 280px);
 		object-fit: contain;
 		border-radius: ${theme.radiusSm};
-
-		@media (max-height: 700px) {
-			max-height: min(32dvh, 220px);
-		}
 	}
 `;
 
 export const TicketNumberBlock = styled.div`
-	padding: 18px;
+	padding: clamp(10px, 1.8svh, 18px) clamp(12px, 3vw, 18px);
 	background: ${theme.inputBg};
 	border: 1px solid ${theme.border};
 	border-radius: ${theme.radiusMd};
 	text-align: center;
-	font-size: clamp(1.125rem, 4vw, 1.5rem);
+	font-size: clamp(1rem, 0.5rem + 2.2svh, 1.5rem);
 	font-weight: 700;
 	color: ${theme.accent};
 	letter-spacing: 0.06em;
-
-	@media (max-height: 700px) {
-		padding: 12px 14px;
-	}
 `;
 
 /** % in `left` is track width; translateX(%) would be bar width only (broken slide). */
@@ -300,23 +291,24 @@ const moveProgress = keyframes`
 		left: 0;
 	}
 	100% {
-		left: calc(100% - 100px);
+		left: calc(100% - var(--progress-bar-size, 100px));
 	}
 `;
 
 export const ProgressTrack = styled.div`
+	--progress-bar-size: clamp(56px, 28%, 100px);
 	width: 100%;
-	height: 6px;
+	height: clamp(4px, 0.6svh, 6px);
 	background: rgba(255, 255, 255, 0.08);
 	border-radius: 3px;
 	overflow: hidden;
-	margin-top: 14px;
+	margin-top: clamp(8px, 1.4svh, 14px);
 	position: relative;
 `;
 
 export const ProgressBar = styled.div`
-	width: 100px;
-	height: 6px;
+	width: var(--progress-bar-size);
+	height: 100%;
 	background: ${theme.accent};
 	border-radius: 3px;
 	position: absolute;
@@ -328,58 +320,50 @@ export const ProgressBar = styled.div`
 `;
 
 export const InfoSection = styled.div`
-	padding: 16px 20px;
+	padding: clamp(10px, 1.8svh, 16px) clamp(12px, 3vw, 20px);
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: clamp(6px, 1svh, 10px);
 	border-top: 1px solid ${theme.border};
-	font-size: 0.9375rem;
-
-	@media (max-height: 700px) {
-		padding: 12px 16px;
-		gap: 8px;
-		font-size: 0.875rem;
-	}
+	font-size: clamp(0.8125rem, 0.7rem + 0.35svh, 0.9375rem);
 `;
 
 export const DetailGrid = styled.div`
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 10px;
-
-	@media (max-width: 380px) {
-		grid-template-columns: 1fr;
-	}
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+	gap: clamp(6px, 1svh, 10px);
 `;
 
 export const DetailCell = styled.div`
 	background: ${theme.inputBg};
 	border: 1px solid ${theme.border};
 	border-radius: ${theme.radiusSm};
-	padding: 12px 14px;
+	padding: clamp(8px, 1.2svh, 12px) clamp(10px, 2vw, 14px);
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: clamp(2px, 0.4svh, 4px);
+	min-width: 0;
 `;
 
 export const DetailLabel = styled.span`
-	font-size: 0.75rem;
+	font-size: clamp(0.625rem, 0.5rem + 0.35svh, 0.75rem);
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	color: ${theme.textMuted};
 `;
 
 export const DetailValue = styled.span`
-	font-size: 0.9375rem;
+	font-size: clamp(0.8125rem, 0.65rem + 0.45svh, 0.9375rem);
 	font-weight: 600;
 	color: ${theme.text};
+	word-break: break-word;
 `;
 
 export const RowSection = styled.div`
 	display: flex;
 	justify-content: space-between;
-	gap: 12px;
-	padding-left: 36px;
+	gap: clamp(8px, 2vw, 12px);
+	padding-left: clamp(28px, 8vw, 36px);
 	position: relative;
 	align-items: flex-start;
 `;
@@ -401,11 +385,16 @@ export const ItemValue = styled(ItemSection)`
 export const LogoBox = styled.div`
 	position: absolute;
 	left: 0;
-	width: 36px;
+	width: clamp(28px, 8vw, 36px);
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	color: ${theme.accent};
+
+	svg {
+		width: clamp(14px, 2.2svh, 18px);
+		height: clamp(14px, 2.2svh, 18px);
+	}
 
 	svg path {
 		fill: currentColor;
@@ -413,8 +402,8 @@ export const LogoBox = styled.div`
 `;
 
 export const FooterNote = styled(InfoSection)`
-	font-size: 0.8125rem;
-	line-height: 1.5;
+	font-size: clamp(0.75rem, 0.6rem + 0.35svh, 0.8125rem);
+	line-height: 1.45;
 	color: ${theme.textMuted};
 	background: ${theme.cardInner};
 `;
