@@ -25,11 +25,14 @@ export const theme = {
 export const WrapperMain = styled.div`
 	background: ${theme.pageBg};
 	display: flex;
-	justify-content: center;
+	flex-direction: column;
 	align-items: center;
-	padding: 20px 16px;
-	min-height: 100vh;
+	justify-content: flex-start;
+	width: 100%;
 	min-height: 100dvh;
+	min-height: 100svh;
+	padding: max(12px, env(safe-area-inset-top, 0px)) 16px
+		max(20px, env(safe-area-inset-bottom, 0px));
 `;
 
 export const Content = styled.div`
@@ -37,6 +40,9 @@ export const Content = styled.div`
 	width: 100%;
 	display: flex;
 	flex-direction: column;
+	flex-shrink: 0;
+	margin-top: auto;
+	margin-bottom: auto;
 	background: ${theme.card};
 	border: 1px solid ${theme.border};
 	border-radius: ${theme.radiusLg};
@@ -218,7 +224,12 @@ export const TicketCardBody = styled.div`
 	padding: 20px;
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
+	gap: 16px;
+
+	@media (max-height: 700px) {
+		padding: 14px 16px;
+		gap: 12px;
+	}
 `;
 
 export const LogoSection = styled.div`
@@ -237,11 +248,15 @@ export const LogoSection = styled.div`
 `;
 
 export const QRFrame = styled.div`
-	padding: 16px;
+	padding: 12px;
 	background: ${theme.cardInner};
 	border-radius: ${theme.radiusMd};
 	border: 1px solid ${theme.border};
 	box-shadow: 0 0 28px ${theme.accentGlow};
+
+	@media (max-height: 700px) {
+		padding: 8px;
+	}
 `;
 
 export const QRSection = styled.div`
@@ -251,9 +266,15 @@ export const QRSection = styled.div`
 
 	img {
 		max-width: 100%;
+		width: auto;
 		height: auto;
+		max-height: min(42dvh, 280px);
 		object-fit: contain;
 		border-radius: ${theme.radiusSm};
+
+		@media (max-height: 700px) {
+			max-height: min(32dvh, 220px);
+		}
 	}
 `;
 
@@ -263,10 +284,14 @@ export const TicketNumberBlock = styled.div`
 	border: 1px solid ${theme.border};
 	border-radius: ${theme.radiusMd};
 	text-align: center;
-	font-size: 1.5rem;
+	font-size: clamp(1.125rem, 4vw, 1.5rem);
 	font-weight: 700;
 	color: ${theme.accent};
 	letter-spacing: 0.06em;
+
+	@media (max-height: 700px) {
+		padding: 12px 14px;
+	}
 `;
 
 /** % in `left` is track width; translateX(%) would be bar width only (broken slide). */
@@ -309,6 +334,12 @@ export const InfoSection = styled.div`
 	gap: 10px;
 	border-top: 1px solid ${theme.border};
 	font-size: 0.9375rem;
+
+	@media (max-height: 700px) {
+		padding: 12px 16px;
+		gap: 8px;
+		font-size: 0.875rem;
+	}
 `;
 
 export const DetailGrid = styled.div`

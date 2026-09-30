@@ -9,15 +9,18 @@ const GlobalStyle = createGlobalStyle`
   }
 
   #root {
-    min-height: 100%;
+    min-height: 100dvh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
   }
 
   html, body {
     overscroll-behavior-y: contain;
     width: 100%;
-    min-height: 100%;
+    min-height: 100dvh;
+    min-height: 100vh;
     min-height: -webkit-fill-available;
     margin: 0;
     padding: 0;
@@ -36,6 +39,7 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     overflow-x: hidden;
+    overflow-y: auto;
   }
 
   body::-webkit-scrollbar {
