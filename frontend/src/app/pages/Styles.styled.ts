@@ -269,18 +269,19 @@ export const TicketNumberBlock = styled.div`
 	letter-spacing: 0.06em;
 `;
 
+/** % in `left` is track width; translateX(%) would be bar width only (broken slide). */
 const moveProgress = keyframes`
 	0% {
-		transform: translateX(0);
+		left: 0;
 	}
 	100% {
-		transform: translateX(calc(100% - 88px));
+		left: calc(100% - 100px);
 	}
 `;
 
 export const ProgressTrack = styled.div`
 	width: 100%;
-	height: 5px;
+	height: 6px;
 	background: rgba(255, 255, 255, 0.08);
 	border-radius: 3px;
 	overflow: hidden;
@@ -289,13 +290,15 @@ export const ProgressTrack = styled.div`
 `;
 
 export const ProgressBar = styled.div`
-	width: 88px;
-	height: 5px;
+	width: 100px;
+	height: 6px;
 	background: ${theme.accent};
 	border-radius: 3px;
 	position: absolute;
+	top: 0;
 	left: 0;
 	box-shadow: 0 0 12px ${theme.accentGlow};
+	will-change: left;
 	animation: ${moveProgress} 2s linear infinite alternate;
 `;
 
