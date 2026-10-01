@@ -6,8 +6,6 @@ import {
 	Form,
 	FormInput,
 	FormButton,
-	FormError,
-	FormSuccess,
 	FormHint,
 	FormLabel,
 	FileInput,
@@ -20,6 +18,7 @@ import {
 	clearAdminToken,
 	getAdminToken,
 } from '../api';
+import { StatusModal, type StatusModalState } from './StatusModal';
 
 const emptyForm = {
 	Number: '',
@@ -34,12 +33,14 @@ const emptyForm = {
 export const Admin = () => {
 	const [authenticated, setAuthenticated] = useState(false);
 	const [password, setPassword] = useState('');
-	const [loginError, setLoginError] = useState('');
 	const [loginLoading, setLoginLoading] = useState(false);
 	const [formData, setFormData] = useState(emptyForm);
 	const [imageFile, setImageFile] = useState<File | null>(null);
-	const [formError, setFormError] = useState('');
-	const [formSuccess, setFormSuccess] = useState('');
+	const [statusModal, setStatusModal] = useState<StatusModalState>(null);
+
+	const showError = (message: string) => setStatusModal({ variant: 'error', message });
+	const showSuccess = (message: string) => setStatusModal({ variant: 'success', message });
+	const closeStatusModal = () => setStatusModal(null);
 
 	useEffect(() => {
 		setAuthenticated(!!getAdminToken());
@@ -48,12 +49,12 @@ export const Admin = () => {
 	const handleUnauthorized = () => {
 		clearAdminToken();
 		setAuthenticated(false);
-		setFormError('Сессия истекла. Войдите снова.');
+		showError('Сессия истекла. Войдите снова.');
 	};
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setLoginError('');
+		closeStatusModal();
 		setLoginLoading(true);
 
 		try {
@@ -61,7 +62,7 @@ export const Admin = () => {
 			setPassword('');
 			setAuthenticated(true);
 		} catch (err) {
-			setLoginError(err instanceof Error ? err.message : 'Ошибка входа');
+			showError(err instanceof Error ? err.message : 'Ошибка входа');
 		} finally {
 			setLoginLoading(false);
 		}
@@ -70,8 +71,7 @@ export const Admin = () => {
 	const handleLogout = () => {
 		clearAdminToken();
 		setAuthenticated(false);
-		setFormSuccess('');
-		setFormError('');
+		closeStatusModal();
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,8 +111,7 @@ export const Admin = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setFormError('');
-		setFormSuccess('');
+		closeStatusModal();
 
 		try {
 			let imagePath = '';
@@ -139,9 +138,11 @@ export const Admin = () => {
 			}
 
 			if (!imagePath) {
-				setFormError('Выберите изображение билета');
+				showError('Выберите изображение билета');
 				return;
 			}
+
+			const ticketNumber = formData.Number;
 
 			const response = await fetch(`${baseUrl}/admin/tickets`, {
 				method: 'POST',
@@ -159,19 +160,18 @@ export const Admin = () => {
 				throw new Error(result.error || 'Ошибка сохранения');
 			}
 
-			setFormSuccess(result.message || 'Билет сохранён');
+			showSuccess(result.message || `Билет ${ticketNumber} сохранён`);
 			setFormData(emptyForm);
 			setImageFile(null);
 		} catch (err) {
-			setFormError(err instanceof Error ? err.message : 'Не удалось сохранить билет');
+			showError(err instanceof Error ? err.message : 'Не удалось сохранить билет');
 		}
 	};
 
 	const handleDeleteAllTickets = async () => {
 		if (!window.confirm('Удалить все билеты? Это нельзя отменить.')) return;
 
-		setFormError('');
-		setFormSuccess('');
+		closeStatusModal();
 
 		try {
 			const response = await fetch(`${baseUrl}/admin/tickets`, {
@@ -189,9 +189,9 @@ export const Admin = () => {
 				throw new Error(result.error || 'Ошибка удаления');
 			}
 
-			setFormSuccess(result.message);
+			showSuccess(result.message || 'Все билеты удалены');
 		} catch (err) {
-			setFormError(err instanceof Error ? err.message : 'Ошибка при удалении');
+			showError(err instanceof Error ? err.message : 'Ошибка при удалении');
 		}
 	};
 
@@ -208,7 +208,7 @@ export const Admin = () => {
 							placeholder='Пароль'
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							$error={!!loginError}
+							$error={statusModal?.variant === 'error'}
 							autoComplete='current-password'
 							required
 						/>
@@ -216,8 +216,8 @@ export const Admin = () => {
 							{loginLoading ? 'Вход…' : 'Войти'}
 						</FormButton>
 					</Form>
-					{loginError && <FormError>{loginError}</FormError>}
 				</Content>
+				<StatusModal state={statusModal} onClose={closeStatusModal} />
 			</WrapperMain>
 		);
 	}
@@ -312,9 +312,8 @@ export const Admin = () => {
 						Выйти
 					</FormButton>
 				</Form>
-				{formError && <FormError>{formError}</FormError>}
-				{formSuccess && <FormSuccess>{formSuccess}</FormSuccess>}
 			</Content>
+			<StatusModal state={statusModal} onClose={closeStatusModal} />
 		</WrapperMain>
 	);
 };

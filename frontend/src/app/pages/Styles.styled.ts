@@ -189,6 +189,58 @@ export const FormSuccess = styled(FormError)`
 	color: #7bed9f;
 `;
 
+export const ModalOverlay = styled.div`
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+	background: rgba(0, 0, 0, 0.65);
+	backdrop-filter: blur(4px);
+`;
+
+export const ModalPanel = styled.div<{ $variant: 'success' | 'error' }>`
+	width: min(100%, 22rem);
+	padding: clamp(20px, 4vw, 28px);
+	border-radius: ${theme.radiusLg};
+	background: ${theme.cardInner};
+	border: 2px solid
+		${({ $variant }) => ($variant === 'success' ? '#7bed9f' : theme.danger)};
+	box-shadow:
+		0 24px 64px rgba(0, 0, 0, 0.5),
+		0 0 0 1px ${theme.border},
+		${({ $variant }) =>
+			$variant === 'success'
+				? '0 0 32px rgba(123, 237, 159, 0.25)'
+				: '0 0 32px rgba(255, 107, 107, 0.25)'};
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+`;
+
+export const ModalTitle = styled.p<{ $variant: 'success' | 'error' }>`
+	margin: 0;
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: ${({ $variant }) => ($variant === 'success' ? '#7bed9f' : theme.danger)};
+	letter-spacing: 0.02em;
+`;
+
+export const ModalMessage = styled.p`
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.45;
+	color: ${theme.text};
+`;
+
+export const ModalButton = styled(FormButton)`
+	width: 100%;
+	margin-top: 4px;
+`;
+
 export const FormHint = styled.p`
 	font-size: 14px;
 	color: ${theme.textMuted};
