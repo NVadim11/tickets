@@ -291,14 +291,26 @@ export const LogoSection = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: clamp(8px, 2vw, 16px);
+	gap: clamp(6px, 1.8vw, 12px);
 	flex-wrap: wrap;
 	padding: clamp(4px, 0.8svh, 8px) 0;
+`;
+
+/** Equal slots so logos with different aspect ratios look aligned */
+export const LogoStripItem = styled.div`
+	flex: 0 1 clamp(52px, 18vw, 80px);
+	height: clamp(22px, 3.6svh, 34px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	img {
-		height: clamp(18px, 3.2svh, 28px);
+		max-width: 100%;
+		max-height: 100%;
 		width: auto;
+		height: auto;
 		object-fit: contain;
+		display: block;
 	}
 `;
 
