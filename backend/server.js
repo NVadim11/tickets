@@ -18,9 +18,16 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = normalizePublicUrl(process.env.SERVER_URL || 'https://abo-ride.live/');
 const UPLOADS_PATH = process.env.UPLOADS_PATH || '/uploads';
-const FILE_PATH = path.join(__dirname, 'data', 'tickets.xlsx');
+const DATA_DIR = path.join(__dirname, 'data');
+const FILE_PATH = path.join(DATA_DIR, 'tickets.xlsx');
+/** Same folder as Excel — persists on Railway volume mounted at /app/data */
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+	fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 function normalizePublicUrl(url) {
 	const trimmed = String(url).trim().replace(/\/$/, '');
@@ -49,7 +56,7 @@ function requireAdmin(req, res, next) {
 }
 
 const storage = multer.diskStorage({
-	destination: 'uploads/',
+	destination: UPLOADS_DIR,
 	filename: (req, file, cb) => {
 		const ext = path.extname(file.originalname);
 		cb(null, `${Date.now()}${ext}`);
@@ -114,7 +121,7 @@ app.post('/upload', requireAdmin, upload.single('image'), (req, res) => {
 	res.json({ filePath: `/uploads/${req.file.filename}` });
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 app.get('/ticket/:number', (req, res) => {
 	const tickets = getTickets();
