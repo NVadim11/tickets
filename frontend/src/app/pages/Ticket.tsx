@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { IconPerson, IconList } from '../icons';
-import ETicket from '../icons/ETicket_Logo.png';
-import DTicket from '../icons/Icon_Deutschlandticket.png';
-import STicket from '../icons/kvv_logo.jpg';
+import LogoDTicket from '../icons/IMG_1562.JPG';
+import LogoETicket from '../icons/IMG_1563.JPG';
+import LogoRegional from '../icons/IMG_1564.JPG';
 import { baseUrl } from '../api';
 import {
 	WrapperMain,
@@ -91,9 +91,9 @@ export const Ticket = () => {
 					<TicketItems>
 						<TicketCardBody>
 							<LogoSection>
-								<img src={ETicket} alt='ETicket Logo' />
-								<img src={DTicket} alt='Deutschlandticket Logo' />
-								<img src={STicket} alt='KVV Logo' />
+								<img src={LogoETicket} alt='ETicket Logo' />
+								<img src={LogoDTicket} alt='Deutschlandticket Logo' />
+								<img src={LogoRegional} alt='KVV Logo' />
 							</LogoSection>
 							{ticketData.Image && (
 								<QRFrame>

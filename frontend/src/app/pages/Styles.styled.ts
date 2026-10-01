@@ -298,7 +298,7 @@ export const LogoSection = styled.div`
 	img {
 		height: clamp(18px, 3.2svh, 28px);
 		width: auto;
-		filter: brightness(1.15) contrast(0.95);
+		object-fit: contain;
 	}
 `;
 

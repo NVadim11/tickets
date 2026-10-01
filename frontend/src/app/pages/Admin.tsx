@@ -161,8 +161,6 @@ export const Admin = () => {
 			}
 
 			showSuccess(result.message || `Билет ${ticketNumber} сохранён`);
-			setFormData(emptyForm);
-			setImageFile(null);
 		} catch (err) {
 			showError(err instanceof Error ? err.message : 'Не удалось сохранить билет');
 		}
