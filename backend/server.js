@@ -21,6 +21,7 @@ const UPLOADS_PATH = process.env.UPLOADS_PATH || '/uploads';
 const DATA_DIR = path.join(__dirname, 'data');
 const FILE_PATH = path.join(DATA_DIR, 'tickets.xlsx');
 /** Same folder as Excel — persists on Railway volume mounted at /app/data */
+// noop: touch for redeploy / volume persistence smoke test
 const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
